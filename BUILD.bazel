@@ -1,0 +1,40 @@
+# Add rules here to build your software
+# See https://docs.bazel.build/versions/master/build-ref.html#BUILD_files
+load("@npm//@babel/cli:index.bzl", "babel")
+load("@npm//mocha:index.bzl", "mocha_test")
+load("@npm//http-server:index.bzl", "http_server")
+
+babel(
+    name = "compile",
+    data = [
+        "app.js",
+        "es5.babelrc",
+        "@npm//@babel/preset-env",
+    ],
+    outs = ["app.es5.js"],
+    args = [
+        "app.js",
+        "--config-file",
+        "$(location es5.babelrc)",
+        "--out-file",
+        "$(location app.es5.js)",
+    ],
+)
+
+http_server(
+    name = "server",
+    data = [
+        "index.html",
+        "app.es5.js",
+    ],
+    args = ["."],
+)
+
+mocha_test(
+    name = "unit_tests",
+    args = ["*.spec.js"],
+    data = glob(["*.spec.js"]) + [
+        "@npm//domino",
+        "app.es5.js",
+    ],
+)
